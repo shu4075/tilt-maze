@@ -1,0 +1,9 @@
+# Render（https://render.com）に公開するときの設定。
+# GitHub のリポジトリをつなぐと、この内容でサービスが作られる。
+services:
+  - type: web
+    name: tilt-maze
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start

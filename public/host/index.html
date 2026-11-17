@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>みんなで傾ける転がし迷路</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <!-- ロビー：参加用QR・URL・ルームコード・参加者一覧・ステージ選択 -->
+  <section id="screen-lobby" class="screen">
+    <header class="lobby-head">
+      <h1>みんなで傾ける転がし迷路</h1>
+      <p class="sub">スマホでQRを読み込んで参加しよう</p>
+    </header>
+
+    <div class="lobby-body">
+      <div class="join-card">
+        <img id="qr" alt="参加用QRコード" width="360" height="360">
+        <div class="join-url" id="join-url">接続中…</div>
+        <div class="room-code-label">ルームコード</div>
+        <div class="room-code" id="room-code">----</div>
+      </div>
+
+      <div class="right-col">
+        <div class="players-card">
+          <div class="players-head">
+            <span>参加者</span>
+            <span class="count"><span id="player-count">0</span> 人</span>
+          </div>
+          <ul id="player-list" class="player-list"></ul>
+          <p id="no-players" class="empty">まだ誰もいません</p>
+        </div>
+
+        <div class="start-card">
+          <div class="stage-buttons" id="stage-buttons" role="radiogroup" aria-label="ステージ"></div>
+          <div class="mode-row">
+            <span class="mode-label">傾き方式</span>
+            <div class="stage-buttons" id="mode-buttons" role="radiogroup" aria-label="傾き方式"></div>
+          </div>
+          <p class="mode-desc" id="mode-desc"></p>
+          <div class="start-row">
+            <button id="ranking-button" class="btn secondary" type="button">ランキング</button>
+            <button id="start-button" class="btn primary" type="button">スタート</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- プレイ：傾く迷路と方向ごとの人数メーター -->
+  <section id="screen-play" class="screen play" hidden>
+    <div class="hud">
+      <div class="hud-item stage-name" id="hud-stage"></div>
+      <div class="hud-item"><span class="hud-label">残り</span><span id="hud-time">90.0</span></div>
+      <div class="hud-item"><span class="hud-label">落下</span><span id="hud-falls">0</span></div>
+      <div class="hud-item"><span class="hud-label">参加</span><span id="hud-players">0</span></div>
+    </div>
+
+    <div class="arena">
+      <div class="meter meter-up"><span class="meter-arrow">▲</span><span class="meter-n" id="m-up">0</span><div class="meter-bar"><i id="mb-up"></i></div></div>
+      <div class="meter meter-left"><span class="meter-arrow">◀</span><span class="meter-n" id="m-left">0</span><div class="meter-bar"><i id="mb-left"></i></div></div>
+      <div class="board-wrap">
+        <div class="board" id="board">
+          <canvas id="maze"></canvas>
+        </div>
+      </div>
+      <div class="meter meter-right"><div class="meter-bar"><i id="mb-right"></i></div><span class="meter-n" id="m-right">0</span><span class="meter-arrow">▶</span></div>
+      <div class="meter meter-down"><div class="meter-bar"><i id="mb-down"></i></div><span class="meter-n" id="m-down">0</span><span class="meter-arrow">▼</span></div>
+    </div>
+
+    <div class="pilot-banner" id="pilot-banner" hidden></div>
+    <div class="replay-badge" id="replay-badge" hidden>REPLAY ×2</div>
+    <div class="countdown" id="countdown" hidden></div>
+    <div class="toast" id="toast" hidden></div>
+    <button id="abort-button" class="btn ghost abort" type="button">中断してロビーへ</button>
+  </section>
+
+  <!-- リザルト -->
+  <section id="screen-result" class="screen result" hidden>
+    <h2 class="result-title" id="r-title">CLEAR!</h2>
+    <p class="result-stage" id="r-stage"></p>
+    <div class="result-time" id="r-time">0.00 秒</div>
+    <div class="result-stats">
+      <div><span class="label">順位</span><span id="r-rank">-</span></div>
+      <div><span class="label">落下</span><span id="r-falls">0</span></div>
+      <div><span class="label">参加</span><span id="r-players">0</span></div>
+    </div>
+    <div class="awards">
+      <div class="award team">
+        <div class="award-name">チームプレイヤー賞</div>
+        <div class="award-desc">いちばん多数派にいた人</div>
+        <div class="award-who" id="r-team">-</div>
+      </div>
+      <div class="award rebel">
+        <div class="award-name">孤高の反逆者賞</div>
+        <div class="award-desc">最後まで逆らった人</div>
+        <div class="award-who" id="r-rebel">-</div>
+      </div>
+    </div>
+    <div class="result-buttons">
+      <button id="r-lobby" class="btn secondary" type="button">ロビーへ</button>
+      <button id="r-ranking" class="btn secondary" type="button">ランキング</button>
+      <button id="r-replay" class="btn secondary" type="button">リプレイ</button>
+      <button id="r-again" class="btn secondary" type="button">もう一回</button>
+      <button id="r-next" class="btn primary" type="button">次のステージ</button>
+    </div>
+  </section>
+
+  <!-- ランキング：上位10記録と落下ヒートマップ -->
+  <section id="screen-ranking" class="screen ranking" hidden>
+    <div class="ranking-head">
+      <h2>ランキング</h2>
+      <div class="stage-buttons" id="ranking-stages"></div>
+      <button id="ranking-back" class="btn secondary" type="button">戻る</button>
+    </div>
+    <div class="ranking-body">
+      <div class="ranking-table-wrap">
+        <table class="ranking-table">
+          <thead><tr><th>#</th><th>タイム</th><th>人数</th><th>落下</th><th>方式</th><th>日時</th></tr></thead>
+          <tbody id="ranking-rows"></tbody>
+        </table>
+        <p id="ranking-empty" class="empty" hidden>まだクリア記録がありません</p>
+      </div>
+      <div class="heatmap-wrap">
+        <div class="heatmap-title">落下ヒートマップ <span class="muted" id="heatmap-total"></span></div>
+        <canvas id="heatmap"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- D キーで開くデバッグ表示 -->
+  <pre id="debug" class="debug" hidden></pre>
+  <button id="sound-button" class="sound-button" type="button" title="効果音とBGM（M キー）">♪ ON</button>
+  <div id="conn-status" class="conn-status" hidden>サーバに再接続しています…</div>
+
+  <!-- ライブラリの置き場所を教える。npm で入れたものをサーバが /vendor/ で配っている -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "/vendor/three/three.module.js",
+        "cannon-es": "/vendor/cannon-es/cannon-es.js"
+      }
+    }
+  </script>
+  <script type="module" src="./host.js"></script>
+</body>
+</html>
